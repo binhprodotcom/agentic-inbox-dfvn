@@ -28,6 +28,12 @@ https://github.com/cloudflare/agentic-inbox/issues/4#issuecomment-4269118513
 4. **Enable Email Service** -- The worker needs the `send_email` binding to send outbound emails. See [Email Service docs](https://developers.cloudflare.com/email-routing/email-workers/send-email-workers/)
 5. **Create a mailbox** -- Visit your deployed app and create a mailbox for any address on your domain (e.g. `hello@example.com`)
 
+### DAFONT: Telegram alerts for incoming mail
+
+After a new message is saved in Agentic Inbox, the Worker sends a short alert containing the mailbox, sender, subject, and an Inbox link. Email bodies and attachments are not sent to Telegram. A Telegram failure does not reject the incoming email.
+
+In **Workers & Pages → agentic-inbox-dfvn → Settings → Variables and Secrets**, add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` as **Secret** values. Add the bot to the target chat or group before testing. The Worker sends no Telegram alerts until both secrets are present. Keep them out of Git and `wrangler.jsonc`. Send a test email from an external address to an existing mailbox, then check the Inbox, Telegram, and Worker logs. WordPress's order-alert bot may be reused if its chat ID is the intended destination.
+
 ### Troubleshooting Access
 
 1. If you see `Invalid or expired Access token`, that usually means `POLICY_AUD` or `TEAM_DOMAIN` secrets are incorrect.

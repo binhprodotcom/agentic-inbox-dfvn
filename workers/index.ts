@@ -8,6 +8,7 @@ import PostalMime from "postal-mime";
 import { z } from "zod";
 import { sendEmail } from "./email-sender";
 import { storeAttachments, type StoredAttachment } from "./lib/attachments";
+import { notifyTelegramNewEmail } from "./lib/telegram-new-email";
 import {
 	validateSender,
 	SenderValidationError,
@@ -401,6 +402,11 @@ async function receiveEmail(event: { raw: ReadableStream; rawSize: number }, env
 		in_reply_to: inReplyTo, email_references: emailReferences.length > 0 ? JSON.stringify(emailReferences) : null,
 		thread_id: threadId, message_id: originalMessageId, raw_headers: JSON.stringify(parsedEmail.headers),
 	}, attachmentData);
+	ctx.waitUntil(notifyTelegramNewEmail(env, {
+		mailbox: mailboxId,
+		from: parsedEmail.from?.address || "(Không rõ người gửi)",
+		subject: parsedEmail.subject || "(Không có chủ đề)",
+	}).catch((error) => console.error("Telegram notification failed:", (error as Error).message)));
 
 	const agentStub = env.EMAIL_AGENT.get(env.EMAIL_AGENT.idFromName(mailboxId));
 	ctx.waitUntil(agentStub.fetch(new Request("https://agents/onNewEmail", {
